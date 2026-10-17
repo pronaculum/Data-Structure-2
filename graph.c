@@ -36,7 +36,7 @@ graphnode* graph_create_graphnode(graphdata item) {
     return new_graphnode; 
 }
 
-int graph_compare_graphnode(listdata a, listdata b) {
+int graph_compare_graphnode(void* a, void* b) {
     graphnode* node_a = (graphnode*)a;
     graphnode* node_b = (graphnode*)b;
     if      (node_a->item == node_b->item)  return 0;
@@ -49,8 +49,8 @@ void graph_delete_graphnode(graphnode* node) {
     while (node->adjustNodes->length > 0) {
         graphnode* me = node;
         graphnode* you = (graphnode*)(node->adjustNodes->root->item);
-        list_delete_value(you->adjustNodes, me, graph_compare_graphnode);
-        list_delete_value(me->adjustNodes, you, graph_compare_graphnode);
+        list_delete_if(you->adjustNodes, me, graph_compare_graphnode);
+        list_delete_if(me->adjustNodes, you, graph_compare_graphnode);
         //원래 다른거였는데 이쁘니까
     }
     list_clear_list(&(node->adjustNodes));
@@ -61,7 +61,7 @@ int graph_condition_is_unvisited(int* visited, graphnode* item) {
     if(visited[item->index]==0) return 1;
     return 0;
 }
-#pragma region 내부_함수
+#pragma endregion
 
 #pragma region 외부_함수
 void graph_init_graph(graph* graph) {
@@ -109,8 +109,8 @@ void graph_delete_edge(graph* graph, int index_a, int index_b) {
     graphnode* graphnode_a = graph->nodes[index_a];
     graphnode* graphnode_b = graph->nodes[index_b];
     if(graphnode_a==NULL || graphnode_b==NULL) return;
-    list_delete_value(graphnode_a->adjustNodes, graphnode_b, graph_compare_graphnode);
-    list_delete_value(graphnode_b->adjustNodes, graphnode_a, graph_compare_graphnode);
+    list_delete_if(graphnode_a->adjustNodes, graphnode_b, graph_compare_graphnode);
+    list_delete_if(graphnode_b->adjustNodes, graphnode_a, graph_compare_graphnode);
 }
 
 int graph_is_adjacent(graph* graph, int index_a, int index_b) {
@@ -119,6 +119,12 @@ int graph_is_adjacent(graph* graph, int index_a, int index_b) {
     if(graphnode_a==NULL || graphnode_b==NULL) return 0;
     if(list_search(graphnode_a->adjustNodes, graphnode_b, graph_compare_graphnode)==NULL) return 0;
     else return 1;
+}
+
+void graph_print_node(graphnode* node) {
+    printf("index : [ %d ],\nitem : [ %d ],\nadjust nodes : [ ", node->index, node->item);
+    for (int i=0;i<node->adjustNodes->length;i++) printf("%d ", ((graphnode*)list_get_at(node->adjustNodes, i))->index);
+    printf("]");
 }
 
 void graph_BFS(graph* graph, int start_index) {
@@ -171,4 +177,60 @@ void graph_DFS(graph* graph, int start_index) {
     stack_delete_stack(stack);
     free(visited);
     printf("DFS End\n");
+}
+
+typedef struct dijkstra_package {
+    int* distance;
+    int* parent;
+}dijkstra_package;
+
+dijkstra_package* dijkstra(graph* graph, int index, void* context, int (*condition)(void* context)) {
+    if (graph == NULL) return NULL;
+    if (graph->length == 0) return NULL;
+    if (index < 0 || index >= graph->length) return NULL;
+    int* visited    = (int*)malloc(sizeof(int)*graph->length);
+    int* distance   = (int*)malloc(sizeof(int)*graph->length);
+    int* parent     = (int*)malloc(sizeof(int)*graph->length);
+    int flag = 1;
+    
+    //초기화
+    for (int i=0;i<graph->length;i++) {
+        visited[i]  = 0;
+        distance[i] = -1; //무한대
+        parent[i]   = -1; //정해지지 않음
+    }
+    distance[index] = 0;
+
+    
+    while (flag--) {
+        //완화
+        visited[index]  = 1;
+        
+        for (int i=0;i<list_get_length(graph->nodes[index]->adjustNodes);i++) {
+            int j = ((graphnode*)list_get_at(graph->nodes[index]->adjustNodes, i))->index;
+            if (distance[j] == -1) {
+                distance[j] = distance[index] + 1;
+                parent[j] = index;
+            } 
+            else if (distance[j] > distance[index] + 1) {
+                distance[j] = distance[index] + 1;
+                parent[j] = index;
+            }
+        }
+        int min = distance[index]+2;
+        //탐색
+        for (int i=0;i<graph->length;i++) {
+            if(!visited[i] && distance[i] != -1 && distance[i] < min) {
+                index = i;
+                min = distance[i];
+                flag = 1;
+            }
+        }
+    }
+    free(visited);
+    dijkstra_package* result = (dijkstra_package*)malloc(sizeof(dijkstra_package));
+    if (result == NULL) return NULL;
+    result->distance = distance;
+    result->parent = parent;
+    return result;
 }

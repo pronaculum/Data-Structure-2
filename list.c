@@ -155,12 +155,12 @@ void list_delete_after(list* list, listnode* node) {
     list_delete_node(list, node, node->next);
 }
 
-void list_delete_value(list* list, listdata item, int (*compare)(listdata, listdata)) {
+void list_delete_if(list* list, void* context, int (*condition)(void*, listdata)) {
     if(list->length==0) return;
     listnode* current = list->root;
     listnode* before_node = NULL;
     while(current!=NULL) {
-        if(compare(current->item, item)==0) {
+        if(condition(context, current->item)) {
             list_delete_node(list, before_node, current);
             return;
         }
@@ -188,7 +188,7 @@ listdata list_get_at(list* list, int index) {
 listdata list_get_if(list* list, void* context, int (*condition)(void*, listdata)) {
     for (int i = 0; i < list->length; i++) {
         listdata item = list_get_at(list, i);
-        if(condition(context, item)==1) return item;
+        if(condition(context, item)) return item;
     }
     return NULL;
 }

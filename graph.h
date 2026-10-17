@@ -19,6 +19,10 @@ struct graph
     graphnode**  nodes;
     int         length;
 };
+typedef struct dijkstra_package {
+    int* distance;
+    int* parent;
+}dijkstra_package;
 
 void graph_init_graph(graph* graph);
 graph* graph_create_graph();
@@ -27,7 +31,9 @@ void graph_delete_vertex(graph* graph, int index);
 void graph_insert_edge(graph* graph, int index_a, int index_b);
 void graph_delete_edge(graph* graph, int index_a, int index_b);
 int graph_is_adjacent(graph* graph, int index_a, int index_b);
+void graph_print_node(graphnode* node);
 void graph_BFS(graph* graph, int start_index);
 void graph_DFS(graph* graph, int start_index);
+dijkstra_package* dijkstra(graph* graph, int index, void* context, int (*condition)(void* context));
 
 #endif
