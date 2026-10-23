@@ -3,36 +3,7 @@
 #include "stack.h"
 #include "queue.h"
 #include "list.h"
-
-#pragma region 맨날_하는거
-// 맨날 하는거
-#define GOLD 0.6180339887
-
-typedef struct hash         hash;
-typedef struct hashnode     hashnode;
-typedef struct context      context;
-
-typedef void*   hashdata;
-typedef void*   hashkey;
-
-typedef enum {
-    STRING,
-    UNSIGNEDINT
-} hashtype;
-
-struct hashnode {
-    hashdata    item;
-    hashkey     key;
-};
-
-struct hash {
-    list**      buckets;
-    int         length;
-    int         count;
-    hashtype    type;
-};
-
-#pragma endregion
+#include "hash.h"
 
 #pragma region 내부_함수
 // 내부 함수
@@ -49,11 +20,14 @@ int hash_is_equal(hashtype type, hashkey key1, hashkey key2) {
         return result;
     case UNSIGNEDINT:
         return *(unsigned int*)key1 == *(unsigned int*)key2;
+    case INDEX :
+        return *(int*)key1 == *(int*)key2;
     }
     return 0;
 }
-int hash_condSTR(void* context, listdata listdata) { return hash_is_equal(STRING, (hashkey)context, ((hashnode*)listdata)->key); }
+int hash_condSTR(void* context, listdata listdata) { return hash_is_equal(STRING, (hashkey)context, ((hashnode*)listdata)->key); } //5번 기능(1)
 int hash_condUINT(void* context, listdata listdata) { return hash_is_equal(UNSIGNEDINT, (hashkey)context, ((hashnode*)listdata)->key); }
+int hash_condINDEX(void* context, listdata listdata) { return hash_is_equal(INDEX, (hashkey)context, ((hashnode*)listdata)->key); } //4번 기능(1)
 hashnode* hash_create_hashbucket(hashdata item, hashkey key) {
     hashnode* new_hashnode = (hashnode*)malloc(sizeof(hashnode));
     if (new_hashnode == NULL) return NULL;
@@ -87,21 +61,50 @@ void hash_push(hash* hash, hashdata item, hashkey key) {
     hashnode* new_hashnode = hash_create_hashbucket(item, key);
     if (new_hashnode == NULL) return;
     if (list_get_if(bucket, key, (hash->type == STRING)?&hash_condSTR:&hash_condUINT) != NULL) return;
+    hashnode* result = NULL;
+    switch (hash->type) {
+        case STRING:        result = list_get_if(bucket, key, &hash_condSTR);   break;
+        case UNSIGNEDINT:   result = list_get_if(bucket, key, &hash_condUINT);  break;
+        case INDEX :        result = list_get_if(bucket, key, &hash_condINDEX); break;
+    }
+    if (result != NULL) return;
     //이미 있자나용;;
     list_insert_at_tail(bucket, new_hashnode);
     hash->count++;
 }
 
-hashnode* hash_pop(hash* hash, hashkey key) {
+hashnode* hash_pop(hash* hash, hashkey key) { //4번 기능(2), 5번 기능(2)
     list* bucket = hash->buckets[hash_function(key, hash->length)];
-    hashnode* result = list_get_if(bucket, key, (hash->type == STRING)?&hash_condSTR:&hash_condUINT);
-    list_delete_if(bucket, key, (hash->type == STRING)?&hash_condSTR:&hash_condUINT);
+    hashnode* result = NULL;
+    switch (hash->type) {
+        case STRING:        result = list_get_if(bucket, key, &hash_condSTR);   break;
+        case UNSIGNEDINT:   result = list_get_if(bucket, key, &hash_condUINT);  break;
+        case INDEX :        result = list_get_if(bucket, key, &hash_condINDEX); break;
+    }
+    switch (hash->type) {
+        case STRING:        list_delete_if(bucket, key, &hash_condSTR);   break;
+        case UNSIGNEDINT:   list_delete_if(bucket, key, &hash_condUINT);  break;
+        case INDEX :        list_delete_if(bucket, key, &hash_condINDEX); break;
+    }
     if (result != NULL) hash->count--;
     return result;
 }
 
-hashnode* hash_peek(hash* hash, hashkey key) {
+hashnode* hash_peek(hash* hash, hashkey key) { //4번 기능(3), 5번 기능(3)
     list* bucket = hash->buckets[hash_function(key, hash->length)];
-    return list_get_if(bucket, key, (hash->type == STRING)?&hash_condSTR:&hash_condUINT);
+    switch (hash->type) {
+        case STRING:        return list_get_if(bucket, key, &hash_condSTR);
+        case UNSIGNEDINT:   return list_get_if(bucket, key, &hash_condUINT);
+        case INDEX :        return list_get_if(bucket, key, &hash_condINDEX);
+    }
+    return NULL;
+}
+
+void hash_print_node(hashnode* node, void(*print)(void*)) {
+    if (node == NULL)  {
+        printf("hey this is NULL\n");
+        return;
+    }
+    print(node->item);
 }
 #pragma endregion

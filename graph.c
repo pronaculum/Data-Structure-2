@@ -3,27 +3,7 @@
 #include "stack.h"
 #include "queue.h"
 #include "list.h"
-
-#pragma region 맨날_하는거
-// 맨날 하는거
-typedef struct graphnode    graphnode;
-typedef struct graph        graph;
-
-typedef int                 graphdata;
-typedef list*               graphlink;
-
-struct graphnode
-{
-    int         index;
-    graphdata   item;
-    graphlink   adjustNodes;
-};
-struct graph
-{
-    graphnode**  nodes;
-    int         length;
-};
-#pragma endregion
+#include "graph.h"
 
 #pragma region 내부_함수
 // 내부 함수
@@ -39,9 +19,8 @@ graphnode* graph_create_graphnode(graphdata item) {
 int graph_compare_graphnode(void* a, void* b) {
     graphnode* node_a = (graphnode*)a;
     graphnode* node_b = (graphnode*)b;
-    if      (node_a->item == node_b->item)  return 0;
-    else if (node_a->item > node_b->item)   return 1;
-    else                                    return -1;
+    if (node_a->item == node_b->item) return 1;
+    return 0;
 }
 
 void graph_delete_graphnode(graphnode* node) {
@@ -61,6 +40,10 @@ int graph_condition_is_unvisited(int* visited, graphnode* item) {
     if(visited[item->index]==0) return 1;
     return 0;
 }
+
+int dijkstra_find_between_condition(void* index, void* result) { return ((dijkstra_package*)result)->visited[*(int*)index]; }
+
+int dijkstra_find_within_distance_condition(void* max_distance, void* result) { return ((dijkstra_package*)result)->distance[*(((dijkstra_package*)result)->curr_index)] > *(int*)max_distance; }
 #pragma endregion
 
 #pragma region 외부_함수
@@ -124,7 +107,7 @@ int graph_is_adjacent(graph* graph, int index_a, int index_b) {
 void graph_print_node(graphnode* node) {
     printf("index : [ %d ],\nitem : [ %d ],\nadjust nodes : [ ", node->index, node->item);
     for (int i=0;i<node->adjustNodes->length;i++) printf("%d ", ((graphnode*)list_get_at(node->adjustNodes, i))->index);
-    printf("]");
+    printf("]\n");
 }
 
 void graph_BFS(graph* graph, int start_index) {
@@ -179,18 +162,35 @@ void graph_DFS(graph* graph, int start_index) {
     printf("DFS End\n");
 }
 
-typedef struct dijkstra_package {
-    int* distance;
-    int* parent;
-}dijkstra_package;
-
-dijkstra_package* dijkstra(graph* graph, int index, void* context, int (*condition)(void* context)) {
+dijkstra_package* dijkstra(graph* graph, int index, void* context, int (*condition)(void*, void*)) {
     if (graph == NULL) return NULL;
     if (graph->length == 0) return NULL;
     if (index < 0 || index >= graph->length) return NULL;
+    dijkstra_package* result = (dijkstra_package*)malloc(sizeof(dijkstra_package));
+    if (result == NULL) return NULL;
     int* visited    = (int*)malloc(sizeof(int)*graph->length);
+    if (visited == NULL) {
+        free(result);
+        return NULL;
+    }
     int* distance   = (int*)malloc(sizeof(int)*graph->length);
+    if (distance == NULL) {
+        free(result);
+        free(visited);
+        return NULL;
+    }
     int* parent     = (int*)malloc(sizeof(int)*graph->length);
+    if (parent == NULL) {
+        free(result);
+        free(visited);
+        free(distance);
+        return NULL;
+    }
+    result->visited = visited;
+    result->distance = distance;
+    result->parent = parent;
+    result->length = graph->length;
+    result->curr_index = &index;
     int flag = 1;
     
     //초기화
@@ -226,11 +226,65 @@ dijkstra_package* dijkstra(graph* graph, int index, void* context, int (*conditi
                 flag = 1;
             }
         }
+        if(condition != NULL && condition(context, result)) break;
     }
-    free(visited);
-    dijkstra_package* result = (dijkstra_package*)malloc(sizeof(dijkstra_package));
-    if (result == NULL) return NULL;
-    result->distance = distance;
-    result->parent = parent;
     return result;
 }
+
+int dijkstra_find_between(graph* graph, int index1, int index2) { //1번 기능
+    if (index2 < 0 || index2 >= graph->length) return -1;
+    dijkstra_package* pac = dijkstra(graph, index1, &index2, &dijkstra_find_between_condition);
+    if(pac == NULL) return -1;
+    int result = pac->distance[index2];
+    free(pac->visited);free(pac->distance);free(pac->parent);free(pac);
+    return result;
+}
+
+list* dijkstra_find_within_distance(graph* graph, int index, int max_distance) { //2번 기능
+    if (max_distance < 1) return NULL;
+    list* result = list_create_list();
+    if(result == NULL) return NULL;
+    dijkstra_package* pac = dijkstra(graph, index, &max_distance, &dijkstra_find_within_distance_condition);
+    if(pac == NULL) { 
+        free(result);
+        return NULL;
+    }
+    for (int i=0;i<graph->length;i++) if(pac->visited[i]) list_insert_at_tail(result, graph->nodes[i]);
+    list_delete_if(result, graph->nodes[index], graph_compare_graphnode);
+    free(pac->visited);free(pac->distance);free(pac->parent);free(pac);
+    return result;
+}
+
+int* dijkstra_find_all(graph* graph) { //3번 기능
+    int* result = (int*)malloc(sizeof(int)*graph->length);
+    if(result == NULL) return NULL;
+    for(int i=0;i<graph->length;i++) {
+        result[i] = graph->nodes[i]->adjustNodes->length;
+    }
+    return result;
+}
+// 이건 존재해도 됨
+
+#pragma endregion
+
+#pragma region 존재해서는 안되는 것들
+
+/*
+int** dijkstra_find_all(graph* graph) { //3번 기능
+    int** result = (int**)malloc(sizeof(int*)*(graph->length+1)>>1);
+    if(result == NULL) return NULL;
+    dijkstra_package* pac;
+    for(int i=0;i<(graph->length+1)>>1;i++) {
+        pac = dijkstra(graph, i, NULL, NULL);
+        if(pac == NULL) {
+            free(result);
+            return NULL;
+        }
+        result[i] = pac->distance;
+        free(pac->visited);free(pac->parent);free(pac);
+    }
+    return result;
+}
+    그냥 무식하게 한거. 무조건 터진다.
+*/
+#pragma endregion

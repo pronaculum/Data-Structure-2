@@ -1,18 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-#pragma region 맨날_하는거
-// 맨날 하는거
-typedef struct queue    queue;
-typedef void*           queueitem;
-
-struct queue {
-    queueitem*  items;
-    int         front;
-    int         rear;
-    int         max_size;
-};
-#pragma endregion
+#include "queue.h"
 
 #pragma region 외부_함수
 // 외부 함수
@@ -30,35 +18,35 @@ queue* queue_create_queue(int max_size) {
     return q;
 }
 
-void queue_delete_queue(queue* q) {
-    if (q == NULL) return;
-    free(q->items);
-    free(q);
+void queue_delete_queue(queue* queue) {
+    if (queue == NULL) return;
+    free(queue->items);
+    free(queue);
 }
 
-int queue_is_empty(queue* q) {
-    return q->front == q->rear;
+int queue_is_empty(queue* queue) {
+    return queue->front == queue->rear;
 }
 
-int queue_is_full(queue* q) {
-    return (q->rear + 1) % q->max_size == q->front;
+int queue_is_full(queue* queue) {
+    return (queue->rear + 1) % queue->max_size == queue->front;
 }
 
-void queue_enqueue(queue* q, queueitem item) {
-    if (q == NULL || q->items == NULL || queue_is_full(q)) return;
-    q->rear = (q->rear + 1) % q->max_size;
-    q->items[q->rear] = item;
+void queue_enqueue(queue* queue, queueitem item) {
+    if (queue == NULL || queue->items == NULL || queue_is_full(queue)) return;
+    queue->rear = (queue->rear + 1) % queue->max_size;
+    queue->items[queue->rear] = item;
 }
 
-queueitem queue_dequeue(queue* q) {
-    if (q == NULL || q->items == NULL || queue_is_empty(q)) return NULL;
-    q->front = (q->front + 1) % q->max_size;
-    queueitem item = q->items[q->front];
+queueitem queue_dequeue(queue* queue) {
+    if (queue == NULL || queue->items == NULL || queue_is_empty(queue)) return NULL;
+    queue->front = (queue->front + 1) % queue->max_size;
+    queueitem item = queue->items[queue->front];
     return item;
 }
 
-queueitem queue_peek(queue* q) {
-    if (q == NULL || q->items == NULL || queue_is_empty(q)) return NULL;
-    return q->items[(q->front + 1) % q->max_size];
+queueitem queue_peek(queue* queue) {
+    if (queue == NULL || queue->items == NULL || queue_is_empty(queue)) return NULL;
+    return queue->items[(queue->front + 1) % queue->max_size];
 }
 #pragma endregion

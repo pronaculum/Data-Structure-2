@@ -1,17 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-#pragma region 맨날_하는거
-// 맨날 하는거
-typedef struct stack    stack;
-typedef void*           stackitem;
-
-struct stack {
-    stackitem*  items;
-    int         top;
-    int         max_size;
-};
-#pragma endregion
+#include "stack.h"
 
 #pragma region 외부_함수
 // 외부 함수

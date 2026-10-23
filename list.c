@@ -1,25 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-#pragma region 맨날_하는거
-// 맨날 하는거
-typedef struct listnode listnode;
-typedef struct list     list;
-
-typedef void*           listdata;
-typedef listnode*       listlink;
-
-struct listnode
-{
-    listdata item;
-    listlink next;
-};
-struct list
-{
-    listnode* root;
-    int length;
-};
-#pragma endregion
+#include "list.h"
 
 #pragma region 내부_함수
 // 내부 함수

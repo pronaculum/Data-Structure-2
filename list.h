@@ -3,10 +3,10 @@
 
 // 맨날 하는거
 typedef struct listnode listnode;
-typedef struct list list;
+typedef struct list     list;
 
-typedef void*       listdata;
-typedef listnode*   listlink;
+typedef void*           listdata;
+typedef listnode*       listlink;
 
 struct listnode
 {
@@ -38,5 +38,4 @@ int list_get_length(list* list);
 int list_isListEmpty(list* list);
 void list_print_list(list* list, void (*print)(listdata));
 void list_clear_list(list** list);
-
 #endif
