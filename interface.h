@@ -10,20 +10,17 @@
 #include "dataset.h"
 
 // 맨날 하는거
-
-typedef struct gaesi        gaesi;
 typedef struct universe     universe;
 
-struct gaesi {
-    int     good;
-    int     time;
-};
+
 struct universe {
     graph*  graph;
-    hash*   idk;
-    heap*   peed;
+    hash*   UID;
+    heap*   feed;
     int*    rank;
     gaesi*  gaesis;
+    char*   name;
+    char*   tag; //해시태그 출력할땐 항상 \0 붙이기
 };
 
 
@@ -33,5 +30,13 @@ int requirement1_2 (universe* universe, int index_a, int index_b);
 int requirement2 (universe* universe);
 int requirement3 (universe* universe);
 int requirement4 (universe* universe);
+int test_merge();
+int test_graph_main();
+int test_graph_BFS();
+int test_graph_DFS();
+int test_graph_dijkstra();
+int test_hash();
+int test_heap_feed();
+int test_heap_main();
 
 #endif

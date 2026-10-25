@@ -102,7 +102,7 @@ hashnode* hash_peek(hash* hash, hashkey key) { //4번 기능(3), 5번 기능(3)
 
 void hash_print_node(hashnode* node, void(*print)(void*)) {
     if (node == NULL)  {
-        printf("hey this is NULL\n");
+        printf("NULLERR\n");
         return;
     }
     print(node->item);
