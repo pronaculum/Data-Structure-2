@@ -4,6 +4,8 @@
 #include "queue.h"
 #include "list.h"
 #include "graph.h"
+#include "heap.h"
+#include "dataset.h"
 
 #pragma region 내부_함수
 // 내부 함수
@@ -48,8 +50,20 @@ int dijkstra_find_within_distance_condition(void* max_distance, void* result) { 
 
 #pragma region 외부_함수
 void graph_init_graph(graph* graph) {
+    if(graph == NULL) return;
+    for(int i=0;i<graph->length;i++) {
+        list_clear_list(&(graph->nodes[i]->adjustNodes));
+        free(graph->nodes[i]);
+    }
+
     free(graph->nodes);
     graph->length = 0;
+}
+
+void graph_delete_graph(graph* graph) {
+    if(graph == NULL) return;
+    graph_init_graph(graph);
+    free(graph);
 }
 
 graph* graph_create_graph() {
@@ -63,7 +77,7 @@ graph* graph_create_graph() {
 void graph_insert_vertex(graph* graph, graphdata item) {
     graphnode* new_node = graph_create_graphnode(item);
     if(new_node==NULL) return;
-    if (graph->length > 0) graph->nodes = (graphnode**)realloc(graph->nodes, sizeof(graphnode*) * (graph->length + 1));
+    if (graph->length > 0) graph->nodes = (graphnode**)realloc(graph->nodes, sizeof(graphnode*) * (graph->length * 2));
     else graph->nodes = (graphnode**)malloc(sizeof(graphnode*));
     new_node->index = graph->length;
     graph->nodes[graph->length] = new_node;
@@ -73,7 +87,7 @@ void graph_insert_vertex(graph* graph, graphdata item) {
 void graph_delete_vertex(graph* graph, int index) {
     if(index<0 || index>=graph->length) return;
     graph_delete_graphnode(graph->nodes[index]);
-    for (int i = index; i < graph->length - 2; i++) {
+    for (int i = index; i < graph->length - 1; i++) {
         graph->nodes[i] = graph->nodes[i + 1];
         graph->nodes[i]->index = i;
     }
@@ -100,7 +114,7 @@ int graph_is_adjacent(graph* graph, int index_a, int index_b) {
     graphnode* graphnode_a = graph->nodes[index_a];
     graphnode* graphnode_b = graph->nodes[index_b];
     if(graphnode_a==NULL || graphnode_b==NULL) return 0;
-    if(list_search(graphnode_a->adjustNodes, graphnode_b, graph_compare_graphnode)==NULL) return 0;
+    if(list_get_if(graphnode_a->adjustNodes, graphnode_b, graph_compare_graphnode)==NULL) return 0;
     else return 1;
 }
 
@@ -143,18 +157,20 @@ void graph_DFS(graph* graph, int start_index) {
     int* visited = (int*)malloc(sizeof(int)*graph->length);
     if (visited == NULL) return;
     for (int i = 0; i < graph->length; i++) visited[i] = 0;
+    visited[start_index] = 1;
     stack_push(stack, graph->nodes[start_index]);
     printf("DFS Start\n");
 
     while (stack_is_empty(stack)==0) {
         graphnode* current_node = (graphnode*)stack_pop(stack);
         int current_index = current_node->index;
-        if(visited[current_index]==1) continue;
-        visited[current_index] = 1;
         printf("[current index : %d, item : %d ]\n", current_index, graph->nodes[current_index]->item);
         for (int i = 0; i < current_node->adjustNodes->length; i++) {
             graphnode* neighbor_node = (graphnode*)list_get_at(current_node->adjustNodes, i);
-            if (visited[neighbor_node->index]==0)  stack_push(stack, neighbor_node);
+            if (visited[neighbor_node->index]==0) {
+                stack_push(stack, neighbor_node);
+                visited[neighbor_node->index] = 1;
+            }
         }
     }
     stack_delete_stack(stack);
@@ -186,12 +202,20 @@ dijkstra_package* dijkstra(graph* graph, int index, void* context, int (*conditi
         free(distance);
         return NULL;
     }
+    heap* heap;
+    if(heap_create_heap(&heap, EDGE_NUM, MIN_HEAP) == ENOMEM) {
+        free(result);
+        free(visited);
+        free(distance);
+        free(parent);
+        return NULL;
+    }
     result->visited = visited;
     result->distance = distance;
     result->parent = parent;
     result->length = graph->length;
     result->curr_index = &index;
-    int flag = 1;
+    int flag = 0;
     
     //초기화
     for (int i=0;i<graph->length;i++) {
@@ -202,7 +226,7 @@ dijkstra_package* dijkstra(graph* graph, int index, void* context, int (*conditi
     distance[index] = 0;
 
     
-    while (flag--) {
+    while (1) {
         //완화
         visited[index]  = 1;
         
@@ -210,24 +234,32 @@ dijkstra_package* dijkstra(graph* graph, int index, void* context, int (*conditi
             int j = ((graphnode*)list_get_at(graph->nodes[index]->adjustNodes, i))->index;
             if (distance[j] == -1) {
                 distance[j] = distance[index] + 1;
+                if(heap_push(heap, distance+j, &j) == ERANGE) {
+                    heap_resize_heap(heap, heap->max_size*2);
+                    heap_push(heap, distance+j, &j);
+                }
                 parent[j] = index;
             } 
             else if (distance[j] > distance[index] + 1) {
                 distance[j] = distance[index] + 1;
+                if(heap_push(heap, distance+j, &j) == ERANGE) {
+                    heap_resize_heap(heap, heap->max_size*2);
+                    heap_push(heap, distance+j, &j);
+                }
                 parent[j] = index;
             }
         }
-        int min = distance[index]+2;
+        int weight, item;
         //탐색
-        for (int i=0;i<graph->length;i++) {
-            if(!visited[i] && distance[i] != -1 && distance[i] < min) {
-                index = i;
-                min = distance[i];
-                flag = 1;
-            }
+        while (1) {
+            if(heap_pop(heap, &weight, &item) == ERANGE) { flag = 1;break; }
+            if(weight == distance[item]) break;
         }
+        if(flag) break;
+        index = item;
         if(condition != NULL && condition(context, result)) break;
     }
+    heap_delete_heap(heap);
     return result;
 }
 

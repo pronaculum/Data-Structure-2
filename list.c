@@ -6,31 +6,31 @@
 // 내부 함수
 listnode* list_create_listnode(listdata item, listlink next) {
     listnode* new_listnode = (listnode*)malloc(sizeof(listnode));
-    if(new_listnode==NULL) return NULL;
+    if (new_listnode==NULL) return NULL;
     new_listnode->item = item;
     new_listnode->next = next;
     return new_listnode;
 }
 
 listnode* list_find_tail(list* list) {
-    if(list->root==NULL) return NULL;
+    if (list->root==NULL) return NULL;
     listnode* current = list->root;
-    while(current->next!=NULL) {current = current->next;}
+    while (current->next!=NULL) {current = current->next;}
     return current;
 }
 
 listnode* list_find_at(list* list, int index) {
-    if(index<0 || index>=list->length) return NULL;
+    if (index<0 || index>=list->length) return NULL;
     listnode* current = list->root;
-    while(index-->0) {
+    while (index-->0) {
         current = current->next;
     }
     return current;
 }
 
 void list_delete_node(list* list, listnode* before_node, listnode* target_node) {
-    if(list->length<=0 || target_node==NULL) return;
-    if(before_node==NULL) list->root = target_node->next;
+    if (list->length<=0 || target_node==NULL) return;
+    if (before_node==NULL) list->root = target_node->next;
     else before_node->next = target_node->next;
     free(target_node);
     list->length--;

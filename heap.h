@@ -23,6 +23,7 @@ struct heap {
 // 외부 함수
 int heap_create_heap(heap** h, int max_size, heap_type type);
 int heap_delete_heap(heap* h);
+int heap_resize_heap(heap* h, int new_size);
 int heap_push(heap* h, heapitem* weight, heapitem* item);
 int heap_pop(heap* h, heapitem* weight, heapitem* item);
 int heap_peek(heap* h, heapitem* weight, heapitem* item);

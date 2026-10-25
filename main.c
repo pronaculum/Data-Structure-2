@@ -78,13 +78,13 @@ int main(void) {
     for (i=0;i<17;i++) { array[i] = ((int[]) {17, 9, 4, 13, 1, 12, 7, 15, 3, 10, 6, 14, 2, 11, 5, 8, 16})[i]; }
     sort_print(array, i, MERGE);
     printf("Feed Start\n");
-    gaesi* g = (gaesi*)malloc(sizeof(gaesi)*200000);\
+    gaesi* g = (gaesi*)malloc(sizeof(gaesi)*200000);
     heap* h;
     heap_create_heap(&h, 200000, MAX_HEAP);
     for (int i=0;i<200000;i++) {
-        (g+i)->good = (rand()% 1000)*(rand()% 1000);
-        (g+i)->time = rand() % 1023 + 20260000; // 현재 시각
-        int weight = (g+i)->good - (20261023 - (g+i)->time) * 100;
+        (g+i)->good = (rand() % 1000) * 1000 + (rand() % 1000); //0~100만, 좋아요 수
+        (g+i)->time = rand() % 7142;                            //0~7142, 경과한 시간
+        int weight = (g+i)->good - (g+i)->time * 14;
         heap_push(h, &weight, &i);
     }
     for (int i=0;i<10;i++) {

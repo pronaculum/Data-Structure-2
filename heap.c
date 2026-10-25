@@ -104,6 +104,16 @@ int heap_delete_heap(heap* h) {
     if (h == NULL)          return EINVAL;
     free(h->items);free(h); return EXIT_SUCCESS;
 }
+int heap_resize_heap(heap* h, int new_size) {
+    if (h == NULL)          return EINVAL;
+    int* new_items = (int*)realloc(h->items, sizeof(int)*new_size*2); 
+    if (new_items == NULL) {
+        return ENOMEM;
+    }
+    h->items = new_items;
+    h->max_size = new_size;
+    return EXIT_SUCCESS;
+}
 
 int heap_push(heap* h, heapitem* weight, heapitem* item) {
     if (h == NULL)          return EINVAL;

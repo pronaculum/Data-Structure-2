@@ -30,6 +30,7 @@ typedef struct dijkstra_package {
 
 //외부 함수
 void graph_init_graph(graph* graph);
+void graph_delete_graph(graph* graph);
 graph* graph_create_graph();
 void graph_insert_vertex(graph* graph, graphdata item);
 void graph_delete_vertex(graph* graph, int index);
