@@ -272,7 +272,7 @@ int dijkstra_find_between(graph* graph, int index1, int index2) { //1번 기능
     return result;
 }
 
-list* dijkstra_find_within_distance(graph* graph, int index, int max_distance) { //2번 기능
+list* dijkstra_find_within_distance(graph* graph, int index, int max_distance, dijkstra_find_within_distance_type type) { //2번 기능
     if (max_distance < 1) return NULL;
     list* result = list_create_list();
     if(result == NULL) return NULL;
@@ -281,7 +281,10 @@ list* dijkstra_find_within_distance(graph* graph, int index, int max_distance) {
         free(result);
         return NULL;
     }
-    for (int i=0;i<graph->length;i++) if(pac->visited[i]) list_insert_at_tail(result, graph->nodes[i]);
+    for (int i=0;i<graph->length;i++) {
+        if (type && pac->distance[i] < max_distance) continue;
+        if(pac->visited[i]) list_insert_at_tail(result, graph->nodes[i]);
+    }
     list_delete_if(result, graph->nodes[index], graph_compare_graphnode);
     free(pac->visited);free(pac->distance);free(pac->parent);free(pac);
     return result;
