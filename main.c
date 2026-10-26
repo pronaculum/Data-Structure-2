@@ -14,39 +14,40 @@
 int main(void) {
     universe* u;
     if (interface_create_universe(&u)) { printf("유니버스 생성에 실패하였습니다.\n프로그램을 종료합니다..."); return ENOMEM; }
+    printf("--- 소셜 네트워크 ---\n1. 요구사항 1\n2. 요구사항 2\n3. 요구사항 3\n4. 요구사항 4\n5. 테스트\n0. 종료\n--- ----- ---\n");
     while (1) {
         int input = 0;
         int index_you, index_a, index_b, testnum;
         char hashtag[9];
-        printf("입력하십시오 : ");
-        scanf("%d", &input);
+        get_input(0, 0, &input, NULL);
         if(input == 0) break; //0 입력시 종료
         switch (input)
         {
         case 1:
             printf("요구사항 1이 입력되었습니다.\n");
-            printf("다리 건너 아는 친구 기능의 유저를 입력하세요 : ");
-            scanf("%d", &index_you);
+            get_input(1, 1, &index_you, NULL);
             requirement1_1(u, index_you);
-            printf("최단 연결 촌수 계산 기능의 두 유저를 입력하세요 : ");
-            scanf("%d %d", &index_a, &index_b);
+            get_input(1, 2, &index_a, &index_b);
             requirement1_2(u, index_a, index_b);
             break;
         case 2:
             printf("요구사항 2가 입력되었습니다.\n");
-            printf("UID를 입력하세요 : ");
-            scanf("%d", &index_you);
+            get_input(2, 1, &index_you, NULL);
             requirement2_1(u, index_you);
-            printf("해시태그를 입력하세요 : ");
-            scanf("%8s", hashtag);
+            get_input(2, 2, hashtag, NULL);
             requirement2_2(u, hashtag);
             break;
+        case 3:
+            printf("요구사항 3이 입력되었습니다.\n");
+            requirement3(u);
+            break;
         case 4:
+            printf("요구사항 4가 입력되었습니다.\n");
             requirement4(u);
             break;
         case 5:
-            printf("테스트 번호를 입력하십시오(help = 0) : ");
-            scanf("%d", &testnum);
+            printf("테스트가 입력되었습니다.\n");
+            get_input(5, 0, &testnum, NULL);
             switch (testnum)
             {
             case 0: printf(
@@ -64,8 +65,7 @@ int main(void) {
             default: printf("잘못된 입력입니다.\n"); break;
             }
             break;
-        default:
-            break;
+        default: printf("잘못된 입력입니다.\n"); break;
         }
     }
     interface_init_universe(u);

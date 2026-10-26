@@ -36,6 +36,7 @@ int requirement2_1 (universe* universe, int UID_input);
 int requirement2_2 (universe* universe, char* hashtag_input);
 int requirement3 (universe* universe);
 int requirement4 (universe* universe);
+int get_input(int num, int subnum, void* arg1, void* arg2);
 int interface_init_universe(universe* u);
 int interface_create_universe(universe** u);
 int test_merge();

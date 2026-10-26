@@ -101,9 +101,8 @@ int requirement2_2 (universe* universe, char* hashtag_input) {
     printf("-- 해당 게시물 목록 --\n");
     for(int i=0;i<posts->length;i++) {
         post* p = (post*)list_get_at(posts, i);
-        int oct16 = 0; //현재 시각 어쩌구 어쩌구
-        printf("작성 일시 : %d, 좋아요 : %d\n", oct16 - p->time, p->good);
-        for(int j=0;j<3;j++) if (p->hashtag[j] != NULL) printf("%.4s", p->hashtag[j]);
+        printf("%d시간 전, 좋아요 : %d\n", p->time, p->good);
+        for(int j=0;j<3;j++) if (p->hashtag[j] != NULL) printf("#%.4s ", p->hashtag[j]);
         printf("\n");
     }
     printf("-- ----- --\n");
@@ -111,7 +110,22 @@ int requirement2_2 (universe* universe, char* hashtag_input) {
     return EXIT_SUCCESS;
 }
 
-int requirement3 (universe* universe);
+int requirement3 (universe* universe) {
+    int weight[10], index[10], i;
+    int length = universe->feed->cur_size;
+    if (length > 10) length = 10; //최대 10개만
+    printf("-- 피드 상위 %d개 목록 --\n", length);
+    for(i=0;i<length;i++) {
+        if (heap_pop(universe->feed, weight+i, index+i) != EXIT_SUCCESS) break;
+        post* p = universe->posts+index[i];
+        printf("%d시간 전, 좋아요 : %d\n", p->time, p->good);
+        for(int j=0;j<3;j++) if (p->hashtag[j] != NULL) printf("#%.4s ", p->hashtag[j]);
+        printf("\n");
+    }
+    printf("-- ----- --\n");
+    for (int j=0;j<i;j++) heap_push(universe->feed, weight+j, index+j);
+    return EXIT_SUCCESS;
+}
 
 int requirement4 (universe* universe) {
     if (universe->rank[0] == -1) {for(int i=0;i<VERTEX_NUM;i++) {
@@ -125,6 +139,51 @@ int requirement4 (universe* universe) {
     return EXIT_SUCCESS;
 }
 
+int get_input(int num, int subnum, void* arg1, void* arg2) {
+    if (num == 0) {
+        printf("기능 번호를 입력하세요 : ");
+        while (!scanf("%d", (int*)arg1)) {
+            while (getchar() != '\n') {}
+            printf("다시 입력해 주세요 : ");
+        }
+        return EXIT_SUCCESS; }
+    if (num == 1 && subnum == 1) {
+        printf("다리 건너 아는 친구 기능의 유저를 입력하세요 : ");
+        while (!scanf("%d", (int*)arg1)) {
+            while (getchar() != '\n') {}
+            printf("다시 입력해 주세요 : ");
+        }
+        return EXIT_SUCCESS; }
+    if (num == 1 && subnum == 2) {
+        printf("최단 연결 촌수 계산 기능의 두 유저를 입력하세요 : ");
+        while (scanf("%d %d", (int*)arg1, (int*)arg2)!=2) {
+            while (getchar() != '\n') {}
+            printf("다시 입력해 주세요 : ");
+        }
+        return EXIT_SUCCESS; }
+    if (num == 2 && subnum == 1) {
+        printf("UID를 입력하세요 : ");
+        while (!scanf("%d", (int*)arg1)) {
+            while (getchar() != '\n') {}
+            printf("다시 입력해 주세요 : ");
+        }
+        return EXIT_SUCCESS; }
+    if (num == 2 && subnum == 2) {
+        printf("해시태그를 입력하세요 : ");
+        while (!scanf("%8s", (char*)arg1)) {
+            while (getchar() != '\n') {}
+            printf("다시 입력해 주세요 : ");
+        }
+        return EXIT_SUCCESS; }
+    if (num == 5) {
+        printf("테스트 번호를 입력하십시오(help = 0) : ");
+        while (!scanf("%d", (int*)arg1)) {
+            while (getchar() != '\n') {}
+            printf("다시 입력해 주세요 : ");
+        }
+        return EXIT_SUCCESS; }
+    return EINVAL;
+}
 
 int interface_init_universe(universe* u) {
     if (u == NULL) return EINVAL;
