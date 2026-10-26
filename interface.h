@@ -16,12 +16,12 @@ typedef struct universe     universe;
 struct universe {
     graph*  graph;
     hash*   UID;
-    int*    UIDarray[VERTEX_NUM*2];
+    int     UID_array[VERTEX_NUM];
     heap*   feed;
     int*    rank;
     post*   post;
     char*   name;
-    char*   tag; //해시태그 출력할땐 항상 \0 붙이기
+    char*   tag; //해시태그 \0 없음
 };
 
 

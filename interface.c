@@ -118,21 +118,22 @@ int interface_create_universe(universe** u) {
     *u = (universe*)malloc(sizeof(universe));
     if (*u == NULL) return ENOMEM;
     (*u)->graph = NULL;
-    (*u)->UID   = NULL;
     (*u)->feed  = NULL;
     (*u)->rank  = NULL;
     (*u)->tag   = NULL;
     (*u)->post  = NULL;
     (*u)->name  = NULL;
-    if (((*u)->graph = graph_create_graph())                        == NULL) { interface_init_universe(*u); return ENOMEM; }
-    if (((*u)->UID   = hash_create_hash(VERTEX_NUM, UNSIGNEDINT))   == NULL) { interface_init_universe(*u); return ENOMEM; }
-    if (heap_create_heap(&((*u)->feed), POST_NUM, MAX_HEAP)       == ENOMEM) { interface_init_universe(*u); return ENOMEM; } // 이거 몇이더라
-    if (((*u)->rank  = (int*)malloc(sizeof(int)*VERTEX_NUM))        == NULL) { interface_init_universe(*u); return ENOMEM; }
-    if (dataset_make_post(&((*u)->post))                          == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
-    if (((*u)->name  = (char*)malloc(sizeof(char)*16*VERTEX_NUM))   == NULL) { interface_init_universe(*u); return ENOMEM; }
-    if (((*u)->tag   = (char*)malloc(sizeof(char)*4*HASHTAG_NUM))   == NULL) { interface_init_universe(*u); return ENOMEM; }
+    if (((*u)->graph = graph_create_graph())                            == NULL ) { interface_init_universe(*u); return ENOMEM; }
     dataset_make_vertex((*u)->graph);
     dataset_make_edge((*u)->graph);
+    if (dataset_make_UID(&((*u)->UID), (*u)->UID_array, (*u)->graph)    == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
+    if (heap_create_heap(&((*u)->feed), POST_NUM, MAX_HEAP)             == ENOMEM) { interface_init_universe(*u); return ENOMEM; } // 이거 몇이더라
+    if (((*u)->rank  = (int*)malloc(sizeof(int)*VERTEX_NUM))            == NULL  ) { interface_init_universe(*u); return ENOMEM; }
+    if (dataset_make_name(&((*u)->name))                                == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
+    if (((*u)->tag   = (char*)malloc(sizeof(char)*4*HASHTAG_NUM))       == NULL  ) { interface_init_universe(*u); return ENOMEM; }
+    dataset_make_hashtag((*u)->tag);
+    if (dataset_make_post(&((*u)->post), (*u)->UID_array, (*u)->tag)    == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
+    
     return EXIT_SUCCESS;
 }
 
