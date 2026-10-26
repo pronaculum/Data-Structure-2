@@ -15,10 +15,11 @@ typedef struct universe     universe;
 
 struct universe {
     graph*  graph;
-    post*   post;
+    post*   posts;
 
-    hash*   UID;
-    hash*   hashtag;
+    hash*   UID_to_user;
+    hash*   UID_to_posts;
+    hash*   hashtag_to_posts;
     heap*   feed;
     int*    rank;
 
@@ -31,9 +32,12 @@ struct universe {
 // 외부 함수
 int requirement1_1 (universe* universe, int index_you);
 int requirement1_2 (universe* universe, int index_a, int index_b);
-int requirement2 (universe* universe);
+int requirement2_1 (universe* universe, int UID_input);
+int requirement2_2 (universe* universe, char* hashtag_input);
 int requirement3 (universe* universe);
 int requirement4 (universe* universe);
+int interface_init_universe(universe* u);
+int interface_create_universe(universe** u);
 int test_merge();
 int test_graph_main();
 int test_graph_BFS();

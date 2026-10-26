@@ -108,7 +108,17 @@ hashnode* hash_peek(hash* hash, hashkey key) { //4번 기능(3), 5번 기능(3)
     return NULL;
 }
 
-list* hash_peek_bucket(hash* hash, hashkey key) { return hash->buckets[hash_function(key, hash->length)]; }
+list* hash_peek_bucket_item(hash* hash, hashkey key) {
+    list* bucket = hash->buckets[hash_function(key, hash->length)];
+    list* result = list_create_list();
+    hashnode* node;
+    if (result == NULL) return NULL;
+    for(int i=0;i<bucket->length;i++) {
+        node = list_get_at(bucket, i);
+        if (hash_is_equal(hash->type, node->key, key)) list_insert_at_head(result, node->item);
+    }
+    return result;
+}
 
 void hash_print_node(hashnode* node, void(*print)(void*)) {
     if (node == NULL)  {

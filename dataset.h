@@ -24,9 +24,10 @@ struct post {
 void dataset_make_vertex(graph* g);
 void dataset_make_edge(graph* g);
 void dataset_make_hashtag_array(char* hashtag_array);
-int dataset_make_hashtag_hash(hash** hashtag, post* p);
+int dataset_make_hashtag_to_post(hash** hashtag, post* p);
 int dataset_make_name_array(char* name);
 int dataset_make_UID_both(hash** UID, int* UID_array, graph* graph);
+int dataset_make_UID_to_posts(hash** UID_to_posts, post* p);
 int dataset_make_post(post** p, int* UID_array, char* hashtag);
 int dataset_make_feed(heap* h, post* p);
 void dataset_out_graph(graph* g);

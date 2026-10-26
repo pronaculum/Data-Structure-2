@@ -57,7 +57,7 @@ void dataset_make_hashtag_array(char* hashtag_array) {  //finish
         hashtag_array[i*4+3] = result%26+'a';result/=26;
     }
 }
-int dataset_make_hashtag_hash(hash** hashtag, post* p) {  //finish
+int dataset_make_hashtag_to_post(hash** hashtag, post* p) {  //finish
     *hashtag = hash_create_hash(HASHTAG_NUM, STRING);
     if(*hashtag == NULL) return ENOMEM;
     for(int i=0;i<POST_NUM;i++) {
@@ -89,9 +89,9 @@ int dataset_make_name_array(char* name_array) {  //finish
     }
     return EXIT_SUCCESS;
 }
-int dataset_make_UID_both(hash** UID, int* UID_array, graph* graph) {  //finish
-    *UID = hash_create_hash(VERTEX_NUM, UNSIGNEDINT);
-    if (*UID == NULL) return ENOMEM;
+int dataset_make_UID_both(hash** UID_to_user, int* UID_array, graph* graph) {  //finish
+    *UID_to_user = hash_create_hash(VERTEX_NUM, UNSIGNEDINT);
+    if (*UID_to_user == NULL) return ENOMEM;
     unsigned int x = dataset_random_int(VERTEX_NUM);
     int c = 17; //10의 배수가 아닌 적절한 수
     int a = 81; //보다 1 작은 값이 20의 배수
@@ -100,8 +100,14 @@ int dataset_make_UID_both(hash** UID, int* UID_array, graph* graph) {  //finish
         x = LCG(x, m, c, a);
         UID_array[i] = x;
         graph->nodes[i]->item = x;
-        hash_push(*UID, graph->nodes[i], UID_array+i);
+        hash_push(*UID_to_user, graph->nodes[i], UID_array+i);
     }
+    return EXIT_SUCCESS;
+}
+int dataset_make_UID_to_posts(hash** UID_to_posts, post* p) {  //UID 없는건 포스트에 있어서
+    *UID_to_posts = hash_create_hash(POST_NUM, UNSIGNEDINT);
+    if (*UID_to_posts == NULL) return ENOMEM;
+    for(int i=0;i<POST_NUM;i++) { hash_push_hard(*UID_to_posts, p+i, &(p+i)->UID); }
     return EXIT_SUCCESS;
 }
 int dataset_make_post(post** p, int* UID_array, char* hashtag_array) {

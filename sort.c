@@ -13,9 +13,9 @@ int minvalue(int a, int b) { return (a>b)?b:a; }
 
 #pragma region 외부_함수
 // 외부 함수
-void sort_Merge(void* base, int length, sort_base_type type) {
+void sort_Merge(void* base, int length, sort_base_type base_type, sort_order_type order_type) {
     if (length < 2) return;
-    if (type == ARRAY_INT) {
+    if (base_type == ARRAY_INT && order_type == LOW) {
         int* result = (int*)malloc(sizeof(int)*length);
         if(result == NULL) return;
         for (int i=1;i<=length;i*=2) { for (int j=0;i*j<length;j+=2) {
@@ -30,13 +30,91 @@ void sort_Merge(void* base, int length, sort_base_type type) {
             for (int k=0;k<length;k++) { ((int*)base)[k] = result[k]; }}
             free(result);
         }
+    if (base_type == ARRAY_INT && order_type == HIGH) {
+        int* result = (int*)malloc(sizeof(int)*length);
+        if(result == NULL) return;
+        for (int i=1;i<=length;i*=2) { for (int j=0;i*j<length;j+=2) {
+                int left_pivot = i*j;                   // 범위 : i*j       ~  i*(j+1)-1
+                int right_pivot = i*(j+1);              // 범위 : i*(j+1)   ~  minvalue(i*(j+2)-1, length-1)
+                for(int k=i*j;k<=minvalue(i*(j+2)-1, length-1);) {
+                    if (right_pivot >= length)                                      result[k++] = ((int*)base)[left_pivot++];
+                    else if (((int*)base)[right_pivot] > ((int*)base)[left_pivot])  result[k++] = ((int*)base)[right_pivot++];
+                    else                                                            result[k++] = ((int*)base)[left_pivot++];
+                    if (left_pivot > i*(j+1)-1)                         { while (k<=minvalue(i*(j+2)-1, length-1)) { result[k++] = ((int*)base)[right_pivot++];  } break; }
+                    if (right_pivot > minvalue(i*(j+2)-1, length-1))    { while (k<=minvalue(i*(j+2)-1, length-1)) { result[k++] = ((int*)base)[left_pivot++];   } break; }}}
+            for (int k=0;k<length;k++) { ((int*)base)[k] = result[k]; }}
+            free(result); }
+    if (base_type == DUAL_ARRAY_INT && order_type == LOW) {
+        int* result = (int*)malloc(sizeof(int)*length*2);
+        if(result == NULL) return;
+        for (int i=1;i<=length;i*=2) { for (int j=0;i*j<length;j+=2) {
+            int left_pivot = i*j;                   // 범위 : i*j       ~  i*(j+1)-1
+            int right_pivot = i*(j+1);              // 범위 : i*(j+1)   ~  minvalue(i*(j+2)-1, length-1)
+            for(int k=i*j;k<=minvalue(i*(j+2)-1, length-1);) {
+                if (right_pivot >= length) {
+                    result[k*2]     = ((int*)base)[left_pivot*2];
+                    result[k++*2+1] = ((int*)base)[left_pivot++*2+1];
+                }
+                else if (((int*)base)[right_pivot*2] < ((int*)base)[left_pivot*2]) {
+                    result[k*2]     = ((int*)base)[right_pivot*2];
+                    result[k++*2+1] = ((int*)base)[right_pivot++*2+1];
+                }
+                else {
+                    result[k*2]     = ((int*)base)[left_pivot*2];
+                    result[k++*2+1] = ((int*)base)[left_pivot++*2+1];
+                }                                                             
+                if (left_pivot > i*(j+1)-1)                         { while (k<=minvalue(i*(j+2)-1, length-1)) {
+                    result[k*2]     = ((int*)base)[right_pivot*2];
+                    result[k++*2+1] = ((int*)base)[right_pivot++*2+1];
+                } break; }
+                if (right_pivot > minvalue(i*(j+2)-1, length-1))    { while (k<=minvalue(i*(j+2)-1, length-1)) {
+                    result[k*2]     = ((int*)base)[left_pivot*2];
+                    result[k++*2+1] = ((int*)base)[left_pivot++*2+1];
+                } break; }}}
+        for (int k=0;k<length;k++) {
+                    ((int*)base)[k*2] = result[k*2];
+                    ((int*)base)[k*2+1] = result[k*2+1];
+        }}
+        free(result); }
+    if (base_type == DUAL_ARRAY_INT && order_type == HIGH) {
+        int* result = (int*)malloc(sizeof(int)*length*2);
+        if(result == NULL) return;
+        for (int i=1;i<=length;i*=2) { for (int j=0;i*j<length;j+=2) {
+            int left_pivot = i*j;                   // 범위 : i*j       ~  i*(j+1)-1
+            int right_pivot = i*(j+1);              // 범위 : i*(j+1)   ~  minvalue(i*(j+2)-1, length-1)
+            for(int k=i*j;k<=minvalue(i*(j+2)-1, length-1);) {
+                if (right_pivot >= length) {
+                    result[k*2]     = ((int*)base)[left_pivot*2];
+                    result[k++*2+1] = ((int*)base)[left_pivot++*2+1];
+                }
+                else if (((int*)base)[right_pivot*2] > ((int*)base)[left_pivot*2]) {
+                    result[k*2]     = ((int*)base)[right_pivot*2];
+                    result[k++*2+1] = ((int*)base)[right_pivot++*2+1];
+                }
+                else {
+                    result[k*2]     = ((int*)base)[left_pivot*2];
+                    result[k++*2+1] = ((int*)base)[left_pivot++*2+1];
+                }                                                             
+                if (left_pivot > i*(j+1)-1)                         { while (k<=minvalue(i*(j+2)-1, length-1)) {
+                    result[k*2]     = ((int*)base)[right_pivot*2];
+                    result[k++*2+1] = ((int*)base)[right_pivot++*2+1];
+                } break; }
+                if (right_pivot > minvalue(i*(j+2)-1, length-1))    { while (k<=minvalue(i*(j+2)-1, length-1)) {
+                    result[k*2]     = ((int*)base)[left_pivot*2];
+                    result[k++*2+1] = ((int*)base)[left_pivot++*2+1];
+                } break; }}}
+        for (int k=0;k<length;k++) {
+                    ((int*)base)[k*2] = result[k*2];
+                    ((int*)base)[k*2+1] = result[k*2+1];
+        }}
+        free(result); }
 }
-void sort_print(void* array, int length, sort_sorting_type type) {
-    if (type == MERGE) {
+void sort_print(void* array, int length, sort_sorting_type sorting_type, sort_order_type order_type) {
+    if (sorting_type == MERGE) {
         printf("MergeSort Start\nbefore array : [ ");
         for (int i=0;i<length;i++) printf("%d ", ((int*)array)[i]);
         printf("]\n");
-        sort_Merge(array, length, ARRAY_INT);
+        sort_Merge(array, length, ARRAY_INT, order_type);
         printf("after  array : [ ");
         for (int i=0;i<length;i++) printf("%d ", ((int*)array)[i]);
         printf("]\nMergeSort End\n");

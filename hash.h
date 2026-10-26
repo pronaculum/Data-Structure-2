@@ -34,6 +34,6 @@ void hash_push(hash* hash, hashdata item, hashkey key);
 void hash_push_hard(hash* hash, hashdata item, hashkey key);
 hashnode* hash_pop(hash* hash, hashkey key);
 hashnode* hash_peek(hash* hash, hashkey key);
-list* hash_peek_bucket(hash* hash, hashkey key);
+list* hash_peek_bucket_item(hash* hash, hashkey key);
 void hash_print_node(hashnode* node, void(*print)(void*));
 #endif
