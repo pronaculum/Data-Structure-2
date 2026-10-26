@@ -134,7 +134,7 @@ int interface_create_universe(universe** u) {
     if (heap_create_heap(&((*u)->feed), POST_NUM, MAX_HEAP)                     == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
     if (dataset_make_post(&((*u)->post), (*u)->UID_array, (*u)->hashtag_array)  == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
     dataset_make_feed((*u)->feed, (*u)->post);
-
+    dataset_make_hashtag_hash(&((*u)->hashtag), (*u)->post);
 
     if (((*u)->rank  = (int*)malloc(sizeof(int)*VERTEX_NUM))                    == NULL  ) { interface_init_universe(*u); return ENOMEM; }
     

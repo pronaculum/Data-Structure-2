@@ -42,7 +42,7 @@ void dataset_make_edge(graph* g) {  //finish
         }
     } 
 }
-void dataset_make_hashtag_array(char* hashtag) {  //finish
+void dataset_make_hashtag_array(char* hashtag_array) {  //finish
     unsigned int x = dataset_random_int(ALPHABET_NUM);
     unsigned int result;
     for(int i=0;i<HASHTAG_NUM;i++) {
@@ -51,13 +51,25 @@ void dataset_make_hashtag_array(char* hashtag) {  //finish
         int m = ALPHABET_NUM;
         x = LCG(x, m, c, a);
         result = x;
-        hashtag[i*4+0] = result%26+'a';result/=26;
-        hashtag[i*4+1] = result%26+'a';result/=26;
-        hashtag[i*4+2] = result%26+'a';result/=26;
-        hashtag[i*4+3] = result%26+'a';result/=26;
+        hashtag_array[i*4+0] = result%26+'a';result/=26;
+        hashtag_array[i*4+1] = result%26+'a';result/=26;
+        hashtag_array[i*4+2] = result%26+'a';result/=26;
+        hashtag_array[i*4+3] = result%26+'a';result/=26;
     }
 }
-int dataset_make_name_array(char* name) {  //finish
+int dataset_make_hashtag_hash(hash** hashtag, post* p) {  //finish
+    *hashtag = hash_create_hash(HASHTAG_NUM, STRING);
+    if(*hashtag == NULL) return ENOMEM;
+    for(int i=0;i<POST_NUM;i++) {
+        hash_push_hard(*hashtag, p+i, (p+i)->hashtag[0]);
+        if ((p+i)->hashtag[1] != NULL) {
+            hash_push_hard(*hashtag, p+i, (p+i)->hashtag[1]);
+            if ((p+i)->hashtag[2] != NULL) hash_push_hard(*hashtag, p+i, (p+i)->hashtag[2]);
+        }
+    }
+    return EXIT_SUCCESS;
+}
+int dataset_make_name_array(char* name_array) {  //finish
     unsigned int x = dataset_random_int(ALPHABETEXTRA_DIVIDED_NUM);
     unsigned int result;
     for(int i=0;i<VERTEX_NUM;i++) {
@@ -68,9 +80,9 @@ int dataset_make_name_array(char* name) {  //finish
             x = LCG(x, m, c, a);
             result = x;
             for(int k=0;k<4;k++) {
-                if      (result % 37 == 0)  name[i*8+j*4+k]    = '_';
-                else if (result % 37 <= 10) name[i*8+j*4+k]    = '0' + result % 37 - 1;
-                else                        name[i*8+j*4+k]    = 'a' + result % 37 - 11;
+                if      (result % 37 == 0)  name_array[i*8+j*4+k]    = '_';
+                else if (result % 37 <= 10) name_array[i*8+j*4+k]    = '0' + result % 37 - 1;
+                else                        name_array[i*8+j*4+k]    = 'a' + result % 37 - 11;
                 result/=37;
             }
         }
@@ -92,7 +104,7 @@ int dataset_make_UID_both(hash** UID, int* UID_array, graph* graph) {  //finish
     }
     return EXIT_SUCCESS;
 }
-int dataset_make_post(post** p, int* UID_array, char* hashtag) {
+int dataset_make_post(post** p, int* UID_array, char* hashtag_array) {
     *p = (post*)malloc(sizeof(post)*POST_NUM);
     if(*p == NULL) return ENOMEM;
     for (int i=0;i<POST_NUM;i++) {
@@ -110,9 +122,9 @@ int dataset_make_post(post** p, int* UID_array, char* hashtag) {
                 while (hashtag1 == hashtag2 || hashtag2 == hashtag3) hashtag3 = dataset_random_int(HASHTAG_NUM);
             }
         }
-        (*p+i)->hashtag[0] = hashtag + hashtag1 * 4;
-        (*p+i)->hashtag[1] = (hashtag2+1)?hashtag + hashtag2 * 4:NULL;
-        (*p+i)->hashtag[2] = (hashtag3+1)?hashtag + hashtag3 * 4:NULL;
+        (*p+i)->hashtag[0] = hashtag_array + hashtag1 * 4;
+        (*p+i)->hashtag[1] = (hashtag2+1)?hashtag_array + hashtag2 * 4:NULL;
+        (*p+i)->hashtag[2] = (hashtag3+1)?hashtag_array + hashtag3 * 4:NULL;
     }
     return EXIT_SUCCESS;
 }

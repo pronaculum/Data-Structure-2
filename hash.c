@@ -60,15 +60,23 @@ void hash_push(hash* hash, hashdata item, hashkey key) {
     list* bucket = hash->buckets[hash_function(key, hash->length)];
     hashnode* new_hashnode = hash_create_hashbucket(item, key);
     if (new_hashnode == NULL) return;
-    if (list_get_if(bucket, key, (hash->type == STRING)?&hash_condSTR:&hash_condUINT) != NULL) return;
+    if (list_get_if(bucket, key, (hash->type == STRING)?&hash_condSTR:&hash_condUINT) != NULL) { free(new_hashnode);return; }
     hashnode* result = NULL;
     switch (hash->type) {
         case STRING:        result = list_get_if(bucket, key, &hash_condSTR);   break;
         case UNSIGNEDINT:   result = list_get_if(bucket, key, &hash_condUINT);  break;
         case INDEX :        result = list_get_if(bucket, key, &hash_condINDEX); break;
     }
-    if (result != NULL) return;
+    if (result != NULL) { free(new_hashnode);return; }
     //이미 있자나용;;
+    list_insert_at_tail(bucket, new_hashnode);
+    hash->count++;
+}
+
+void hash_push_hard(hash* hash, hashdata item, hashkey key) {
+    list* bucket = hash->buckets[hash_function(key, hash->length)];
+    hashnode* new_hashnode = hash_create_hashbucket(item, key);
+    if (new_hashnode == NULL) return;
     list_insert_at_tail(bucket, new_hashnode);
     hash->count++;
 }
@@ -99,6 +107,8 @@ hashnode* hash_peek(hash* hash, hashkey key) { //4번 기능(3), 5번 기능(3)
     }
     return NULL;
 }
+
+list* hash_peek_bucket(hash* hash, hashkey key) { return hash->buckets[hash_function(key, hash->length)]; }
 
 void hash_print_node(hashnode* node, void(*print)(void*)) {
     if (node == NULL)  {
