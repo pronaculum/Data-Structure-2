@@ -109,8 +109,6 @@ int interface_init_universe(universe* u) {
     if (u->feed != NULL)    heap_delete_heap(u->feed);
     if (u->rank != NULL)    free(u->rank);
     if (u->post != NULL)    free(u->post);
-    if (u->name != NULL)    free(u->name);
-    if (u->tag != NULL)     free(u->tag);
     free(u); return EXIT_SUCCESS;
 }
 
@@ -118,21 +116,31 @@ int interface_create_universe(universe** u) {
     *u = (universe*)malloc(sizeof(universe));
     if (*u == NULL) return ENOMEM;
     (*u)->graph = NULL;
-    (*u)->feed  = NULL;
-    (*u)->rank  = NULL;
-    (*u)->tag   = NULL;
     (*u)->post  = NULL;
-    (*u)->name  = NULL;
-    if (((*u)->graph = graph_create_graph())                            == NULL ) { interface_init_universe(*u); return ENOMEM; }
+
+    (*u)->UID       = NULL;
+    (*u)->hashtag   = NULL;
+    (*u)->feed      = NULL;
+    (*u)->rank      = NULL;
+    
+    dataset_make_name_array((*u)->name_array);
+    dataset_make_hashtag_array((*u)->hashtag_array);
+
+    if (((*u)->graph = graph_create_graph())                                    == NULL ) { interface_init_universe(*u); return ENOMEM; }
     dataset_make_vertex((*u)->graph);
     dataset_make_edge((*u)->graph);
-    if (dataset_make_UID(&((*u)->UID), (*u)->UID_array, (*u)->graph)    == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
-    if (heap_create_heap(&((*u)->feed), POST_NUM, MAX_HEAP)             == ENOMEM) { interface_init_universe(*u); return ENOMEM; } // 이거 몇이더라
-    if (((*u)->rank  = (int*)malloc(sizeof(int)*VERTEX_NUM))            == NULL  ) { interface_init_universe(*u); return ENOMEM; }
-    if (dataset_make_name(&((*u)->name))                                == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
-    if (((*u)->tag   = (char*)malloc(sizeof(char)*4*HASHTAG_NUM))       == NULL  ) { interface_init_universe(*u); return ENOMEM; }
-    dataset_make_hashtag((*u)->tag);
-    if (dataset_make_post(&((*u)->post), (*u)->UID_array, (*u)->tag)    == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
+
+    if (dataset_make_UID_both(&((*u)->UID), (*u)->UID_array, (*u)->graph)       == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
+    if (heap_create_heap(&((*u)->feed), POST_NUM, MAX_HEAP)                     == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
+    if (dataset_make_post(&((*u)->post), (*u)->UID_array, (*u)->hashtag_array)  == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
+    dataset_make_feed((*u)->feed, (*u)->post);
+
+
+    if (((*u)->rank  = (int*)malloc(sizeof(int)*VERTEX_NUM))                    == NULL  ) { interface_init_universe(*u); return ENOMEM; }
+    
+    
+
+
     
     return EXIT_SUCCESS;
 }

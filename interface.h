@@ -15,13 +15,16 @@ typedef struct universe     universe;
 
 struct universe {
     graph*  graph;
+    post*   post;
+
     hash*   UID;
-    int     UID_array[VERTEX_NUM];
+    hash*   hashtag;
     heap*   feed;
     int*    rank;
-    post*   post;
-    char*   name;
-    char*   tag; //해시태그 \0 없음
+
+    char    name_array[VERTEX_NUM*8];
+    int     UID_array[VERTEX_NUM];
+    char    hashtag_array[HASHTAG_NUM*4]; //해시태그 \0 없음
 };
 
 

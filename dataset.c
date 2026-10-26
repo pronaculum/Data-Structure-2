@@ -4,6 +4,7 @@
 #include "queue.h"
 #include "list.h"
 #include "graph.h"
+#include "heap.h"
 #include "hash.h"
 #include "dataset.h"
 
@@ -19,6 +20,17 @@ unsigned int LCG(unsigned int x, int m, int c, int a) {
 void dataset_make_vertex(graph* g) {  //finish
     for (int i=0;i<VERTEX_NUM;i++) graph_insert_vertex(g, i*1000+dataset_random_int(1000));
 }
+void dataset_export_vertex(graph* g, FILE* file) {  //finish
+    for (int i=0;i<VERTEX_NUM;i++) fprintf(file, "%d ", i*1000+dataset_random_int(1000));
+}
+void dataset_import_vertex(graph* g, FILE* file) {  //finish
+    int input;
+    for (int i=0;i<VERTEX_NUM;i++) {
+        fscanf(file, "%d ", &input);
+        graph_insert_vertex(g, input);
+    }
+
+}
 void dataset_make_edge(graph* g) {  //finish
     int index_a, index_b;
     for (int inserted_edge = 0;inserted_edge<EDGE_NUM;) {
@@ -30,7 +42,7 @@ void dataset_make_edge(graph* g) {  //finish
         }
     } 
 }
-void dataset_make_hashtag(char* hashtag) {  //finish
+void dataset_make_hashtag_array(char* hashtag) {  //finish
     unsigned int x = dataset_random_int(ALPHABET_NUM);
     unsigned int result;
     for(int i=0;i<HASHTAG_NUM;i++) {
@@ -45,30 +57,27 @@ void dataset_make_hashtag(char* hashtag) {  //finish
         hashtag[i*4+3] = result%26+'a';result/=26;
     }
 }
-int dataset_make_name(char** name) {  //finish
-    *name = (char*)malloc(sizeof(char)*VERTEX_NUM*16);
-    if (*name == NULL) return ENOMEM;
+int dataset_make_name_array(char* name) {  //finish
     unsigned int x = dataset_random_int(ALPHABETEXTRA_DIVIDED_NUM);
     unsigned int result;
     for(int i=0;i<VERTEX_NUM;i++) {
         int c = 17; //37의 배수가 아닌 적절한 수
         int a = 75; //보다 1 작은 값이 37의 배수
         int m = ALPHABETEXTRA_DIVIDED_NUM;
-        for(int j=0;j<4;j++) {
+        for(int j=0;j<2;j++) {
             x = LCG(x, m, c, a);
             result = x;
             for(int k=0;k<4;k++) {
-                if      (result % 37 == 0)  (*name)[i*16+j*4+k]    = '_';
-                else if (result % 37 <= 10) (*name)[i*16+j*4+k]    = '0' + result % 37 - 1;
-                else                        (*name)[i*16+j*4+k]    = 'a' + result % 37 - 11;
+                if      (result % 37 == 0)  name[i*8+j*4+k]    = '_';
+                else if (result % 37 <= 10) name[i*8+j*4+k]    = '0' + result % 37 - 1;
+                else                        name[i*8+j*4+k]    = 'a' + result % 37 - 11;
                 result/=37;
             }
         }
-        (*name)[i*16+15] = '\0';
     }
     return EXIT_SUCCESS;
 }
-int dataset_make_UID(hash** UID, int* UID_array, graph* graph) {  //finish
+int dataset_make_UID_both(hash** UID, int* UID_array, graph* graph) {  //finish
     *UID = hash_create_hash(VERTEX_NUM, UNSIGNEDINT);
     if (*UID == NULL) return ENOMEM;
     unsigned int x = dataset_random_int(VERTEX_NUM);
@@ -78,23 +87,39 @@ int dataset_make_UID(hash** UID, int* UID_array, graph* graph) {  //finish
     for(int i=0;i<VERTEX_NUM;i++) {
         x = LCG(x, m, c, a);
         UID_array[i] = x;
+        graph->nodes[i]->item = x;
         hash_push(*UID, graph->nodes[i], UID_array+i);
     }
     return EXIT_SUCCESS;
 }
 int dataset_make_post(post** p, int* UID_array, char* hashtag) {
-    *p = (post*)malloc(sizeof(post)*200000);
+    *p = (post*)malloc(sizeof(post)*POST_NUM);
     if(*p == NULL) return ENOMEM;
-    unsigned int x = dataset_random_int(VERTEX_NUM);
-    int c = 17; //10의 배수가 아닌 적절한 수
-    int a = 71; //보다 1 작은 값이 10의 배수
-    int m = VERTEX_NUM;
-    for (int i=0;i<200000;i++) {
-        x = LCG(x, m, c, a);
+    for (int i=0;i<POST_NUM;i++) {
         (*p+i)->good = (rand() % 1000) * 1000 + (rand() % 1000); //0~100만, 좋아요 수
         (*p+i)->time = rand() % 7142;                            //0~7142, 경과한 시간
-        (*p+i)->UID  = UID_array[x];
-        for (int j=0;j<3;j++) (*p+i)->hashtag[j] = hashtag + (x*4)%HASHTAG_NUM;
+        (*p+i)->UID  = UID_array[dataset_random_int(VERTEX_NUM)];
+        int hashtag1 = dataset_random_int(HASHTAG_NUM);
+        int hashtag2 = -1;
+        int hashtag3 = -1;
+        if (dataset_random_int(2)) {
+            hashtag2 = dataset_random_int(HASHTAG_NUM);
+            while (hashtag1 == hashtag2) hashtag2 = dataset_random_int(HASHTAG_NUM);
+            if (dataset_random_int(2)) {
+                hashtag3 = dataset_random_int(HASHTAG_NUM);
+                while (hashtag1 == hashtag2 || hashtag2 == hashtag3) hashtag3 = dataset_random_int(HASHTAG_NUM);
+            }
+        }
+        (*p+i)->hashtag[0] = hashtag + hashtag1 * 4;
+        (*p+i)->hashtag[1] = (hashtag2+1)?hashtag + hashtag2 * 4:NULL;
+        (*p+i)->hashtag[2] = (hashtag3+1)?hashtag + hashtag3 * 4:NULL;
+    }
+    return EXIT_SUCCESS;
+}
+int dataset_make_feed(heap* h, post* p) {
+    for(int i=0;i<POST_NUM;i++){
+        int weight = (p+i)->good - (p+i)->time * 14;
+        heap_push(h, &weight, &i);
     }
     return EXIT_SUCCESS;
 }
