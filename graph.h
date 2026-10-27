@@ -47,6 +47,7 @@ void graph_BFS(graph* graph, int start_index);
 void graph_DFS(graph* graph, int start_index);
 dijkstra_package* dijkstra(graph* graph, int index, void* context, int (*condition)(void*, void*));
 int dijkstra_find_between(graph* graph, int index1, int index2);
+int dijkstra_find_between_path(graph* graph, int index1, int index2, int** path);
 list* dijkstra_find_within_distance(graph* graph, int index, int max_distance, dijkstra_find_within_distance_type type);
 int* dijkstra_find_all(graph* graph);
 #endif

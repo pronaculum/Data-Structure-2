@@ -272,6 +272,24 @@ int dijkstra_find_between(graph* graph, int index1, int index2) { //1번 기능
     return result;
 }
 
+int dijkstra_find_between_path(graph* graph, int index1, int index2, int** path) { //1번 기능
+    if (index2 < 0 || index2 >= graph->length) return -1;
+    dijkstra_package* pac = dijkstra(graph, index1, &index2, &dijkstra_find_between_condition);
+    if (pac == NULL) return -ERANGE;
+    int result = pac->distance[index2];
+    result = (result == -1)?-ERANGE:result;
+    if (result > 0) {
+        *path = (int*)malloc(sizeof(int)*(result+1));
+        if(*path == NULL) result = -ENOMEM;
+        else {
+            (*path)[0] = index2;
+            for(int i=1;i<result+1;i++) (*path)[i] = pac->parent[(*path)[i-1]];
+        }
+    }
+    free(pac->visited);free(pac->distance);free(pac->parent);free(pac);
+    return result;
+}
+
 list* dijkstra_find_within_distance(graph* graph, int index, int max_distance, dijkstra_find_within_distance_type type) { //2번 기능
     if (max_distance < 1) return NULL;
     list* result = list_create_list();

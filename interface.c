@@ -51,14 +51,22 @@ int requirement1_1 (universe* universe, int UID_you) {
 }
 
 int requirement1_2 (universe* universe, int UID_a, int UID_b) {
+    if (UID_a == UID_b) { printf("같은 유저입니다.\n"); return EINVAL; }
     int result = EXIT_SUCCESS;
+    int* path;
     hashnode* search_a = hash_peek(universe->UID_to_user, &UID_a);
     hashnode* search_b = hash_peek(universe->UID_to_user, &UID_b);
     if (search_a == NULL || search_b == NULL) { printf("존재하지 않는 UID입니다.\n"); result = ERANGE; }
     else {
-        int min = dijkstra_find_between(universe->graph, ((graphnode*)(search_a->item))->index, ((graphnode*)(search_b->item))->index);
-        if(min == -1)  printf("연결되어 있지 않습니다.\n");
-        else            printf("최소 연결 촌수 : %d\n", min);
+        int min = dijkstra_find_between_path(universe->graph, ((graphnode*)(search_a->item))->index, ((graphnode*)(search_b->item))->index, &path);
+        if (min == -ERANGE) printf("연결되어 있지 않습니다.\n");
+        else if (min != -ENOMEM) {
+            printf("최소 연결 촌수 : %d\n[ ", min);
+            for(int i=0;i<min;i++) printf("%d - ", universe->UID_array[path[min-i]]);
+            printf("%d ]\n", universe->UID_array[path[0]]);
+            free(path);
+        }
+        else printf("메모리 할당에 실패했습니다.\n");
     }
     return result;
 }
