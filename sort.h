@@ -18,6 +18,6 @@ typedef enum {
 } sort_order_type;
 
 // 외부 함수
-void sort_Merge(void* base, int length, sort_base_type base_type, sort_order_type order_type);
+int sort_Merge(void* base, int length, sort_base_type base_type, sort_order_type order_type);
 void sort_print(void* array, int length, sort_sorting_type sorting_type, sort_order_type order_type);
 #endif

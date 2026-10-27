@@ -229,9 +229,10 @@ dijkstra_package* dijkstra(graph* graph, int index, void* context, int (*conditi
     while (1) {
         //완화
         visited[index]  = 1;
+        listnode* cur_ptr = graph->nodes[index]->adjustNodes->root;
         
         for (int i=0;i<list_get_length(graph->nodes[index]->adjustNodes);i++) {
-            int j = ((graphnode*)list_get_at(graph->nodes[index]->adjustNodes, i))->index;
+            int j = ((graphnode*)cur_ptr->item)->index;
             if (distance[j] == -1) {
                 distance[j] = distance[index] + 1;
                 if(heap_push(heap, distance+j, &j) == ERANGE) {
@@ -248,6 +249,7 @@ dijkstra_package* dijkstra(graph* graph, int index, void* context, int (*conditi
                 }
                 parent[j] = index;
             }
+            cur_ptr = cur_ptr->next;
         }
         int weight, item;
         //탐색

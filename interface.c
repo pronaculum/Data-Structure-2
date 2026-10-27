@@ -85,26 +85,39 @@ int requirement2_1 (universe* universe, int UID_input) {
         printf("유저 친구 수 : %d\n-- 친구 목록 --\n", user->adjustNodes->length);
         for(int i=0;i<user->adjustNodes->length;i++) printf("%d\n", universe->UID_array[((graphnode*)list_get_at(user->adjustNodes, i))->index]);
     }
-    if (posts != NULL && posts->length == 0) printf("작성물이 없습니다.\n");
-    else{
-        printf("-- 작성 게시물 목록 --\n");
-        for(int i=0;i<posts->length;i++) {
-            post* p = (post*)list_get_at(posts, i);
-            printf("%d시간 전, 좋아요 : %d\n", p->time, p->good);
-            for(int j=0;j<3;j++) if (p->hashtag[j] != NULL) printf("#%.4s ", p->hashtag[j]);
-            printf("\n");
-    }printf("-- ----- --\n");}
-    list_clear_list(&posts);
+    if (posts == NULL) {
+        printf("작성물 목록을 불러오지 못했습니다.\n");
+        return ENOMEM;
+    }
+    else {
+        if (posts->length == 0) printf("작성물이 없습니다.\n");
+        else{
+            printf("-- 작성 게시물 목록 --\n");
+            for(int i=0;i<posts->length;i++) {
+                post* p = (post*)list_get_at(posts, i);
+                printf("%d시간 전, 좋아요 : %d\n", p->time, p->good);
+                for(int j=0;j<3;j++) if (p->hashtag[j] != NULL) printf("#%.4s ", p->hashtag[j]);
+                printf("\n");
+        }printf("-- ----- --\n");}
+        list_clear_list(&posts);
+    }
     return EXIT_SUCCESS;
 }
 
 int requirement2_2 (universe* universe, char* hashtag_input) {
     if (hashtag_input == NULL) { printf("잘못된 문자열입니다.\n"); return EINVAL; }
-    for(int i=0;i<4;i++) if(hashtag_input[i] < 'a' || 'z' < hashtag_input[i]) { printf("해시태그는 영어만 허용됩니다.\n"); return EINVAL; }
-    if (hashtag_input[4] != '\0') { printf("해시태그는 4글자만 허용됩니다.\n"); return EINVAL; }
+    int i;
+    for(i=0;i<5;i++) if(hashtag_input[i] == '\0') { break; }
+    if (i != 4) { printf("해시태그는 4글자만 허용됩니다.\n"); return EINVAL; }
+    for(i=0;i<4;i++) if(hashtag_input[i] < 'a' || 'z' < hashtag_input[i]) { printf("해시태그는 영어만 허용됩니다.\n"); return EINVAL; }
     list* posts = hash_peek_bucket_item(universe->hashtag_to_posts, hashtag_input);
-    if (posts == NULL || posts->length == 0) {
+    if (posts == NULL) {
+        printf("게시물을 불러오지 못했습니다.\n");
+        return ENOMEM;
+    }
+    if (posts->length == 0) {
         printf("존재하지 않는 해시태그입니다\n");
+        list_clear_list(&posts);
         return ERANGE;
     }
     printf("-- 해당 게시물 목록 --\n");
@@ -137,7 +150,9 @@ int requirement3 (universe* universe) {
 }
 
 int requirement4 (universe* universe) {
-    if (universe->rank[0] == -1) dataset_refresh_rank(universe->rank, universe->graph->nodes);
+    if (universe->rank[0] == -1) {
+        if (dataset_refresh_rank(universe->rank, universe->graph->nodes) == ENOMEM) {printf("정렬에 실패하였습니다.\n"); return ENOMEM; }
+    }
     printf("--- 랭킹 목록 ---\n");
     for(int i=0;i<50;i++) printf("%d위 : %d명, ID-%d 이름-%.8s\n", i+1, universe->rank[i*2], universe->graph->nodes[universe->rank[i*2+1]]->item, universe->name_array+universe->rank[i*2+1]*8);
     printf("--- ----- ---\n");
@@ -192,11 +207,13 @@ int get_input(int num, int subnum, void* arg1, void* arg2) {
 
 int interface_init_universe(universe* u) {
     if (u == NULL) return EINVAL;
-    if (u->graph != NULL)       graph_delete_graph(u->graph);
-    if (u->UID_to_user != NULL) free(u->UID_to_user);
-    if (u->feed != NULL)        heap_delete_heap(u->feed);
-    if (u->rank != NULL)        free(u->rank);
-    if (u->posts != NULL)       free(u->posts);
+    if (u->graph            != NULL) graph_delete_graph(u->graph);
+    if (u->UID_to_user      != NULL) hash_delete_hash(u->UID_to_user);
+    if (u->UID_to_posts     != NULL) hash_delete_hash(u->UID_to_posts);
+    if (u->hashtag_to_posts != NULL) hash_delete_hash(u->hashtag_to_posts);
+    if (u->feed             != NULL) heap_delete_heap(u->feed);
+    if (u->rank             != NULL) free(u->rank);
+    if (u->posts            != NULL) free(u->posts);
     free(u); return EXIT_SUCCESS;
 }
 

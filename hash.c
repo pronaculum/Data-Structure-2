@@ -56,6 +56,23 @@ hash* hash_create_hash(int length, hashtype type) {
     return new_hash;
 }
 
+int hash_delete_hash(hash* delete_hash) {
+    if(delete_hash==NULL) return EINVAL;
+    if(delete_hash->buckets==NULL) {
+        free(delete_hash);
+        return ERANGE;
+    }
+    for(int i=0; i<delete_hash->length; i++) {
+        list* cur_list = delete_hash->buckets[i];
+        listnode* cur_ptr = cur_list->root;
+        for(int j=0;j<cur_list->length;j++) { free(cur_ptr->item); cur_ptr = cur_ptr->next; }
+        list_clear_list(delete_hash->buckets+i);
+    }
+    free(delete_hash->buckets);
+    free(delete_hash);
+    return EXIT_SUCCESS;
+}
+
 void hash_push(hash* hash, hashdata item, hashkey key) {
     list* bucket = hash->buckets[hash_function(key, hash->length)];
     hashnode* new_hashnode = hash_create_hashbucket(item, key);
@@ -111,11 +128,11 @@ hashnode* hash_peek(hash* hash, hashkey key) { //4번 기능(3), 5번 기능(3)
 list* hash_peek_bucket_item(hash* hash, hashkey key) {
     list* bucket = hash->buckets[hash_function(key, hash->length)];
     list* result = list_create_list();
-    hashnode* node;
     if (result == NULL) return NULL;
+    listnode* cur_ptr = bucket->root;
     for(int i=0;i<bucket->length;i++) {
-        node = list_get_at(bucket, i);
-        if (hash_is_equal(hash->type, node->key, key)) list_insert_at_head(result, node->item);
+        if (hash_is_equal(hash->type, ((hashnode*)(cur_ptr->item))->key, key)) list_insert_at_head(result, ((hashnode*)(cur_ptr->item))->item);
+        cur_ptr = cur_ptr->next;
     }
     return result;
 }

@@ -30,6 +30,7 @@ struct hash {
 
 //외부 함수
 hash* hash_create_hash(int length, hashtype type);
+int hash_delete_hash(hash* delete_hash);
 void hash_push(hash* hash, hashdata item, hashkey key);
 void hash_push_hard(hash* hash, hashdata item, hashkey key);
 hashnode* hash_pop(hash* hash, hashkey key);

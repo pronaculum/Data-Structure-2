@@ -167,9 +167,11 @@ listdata list_get_at(list* list, int index) {
 }
 
 listdata list_get_if(list* list, void* context, int (*condition)(void*, listdata)) {
+    listnode* cur_ptr = list->root;
     for (int i = 0; i < list->length; i++) {
-        listdata item = list_get_at(list, i);
+        listdata item = cur_ptr->item;
         if(condition(context, item)) return item;
+        cur_ptr = cur_ptr->next;
     }
     return NULL;
 }
