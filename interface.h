@@ -30,8 +30,8 @@ struct universe {
 
 
 // 외부 함수
-int requirement1_1 (universe* universe, int index_you);
-int requirement1_2 (universe* universe, int index_a, int index_b);
+int requirement1_1 (universe* universe, int UID_you);
+int requirement1_2 (universe* universe, int UID_a, int UID_b);
 int requirement2_1 (universe* universe, int UID_input);
 int requirement2_2 (universe* universe, char* hashtag_input);
 int requirement3 (universe* universe);

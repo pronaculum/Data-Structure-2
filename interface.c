@@ -12,7 +12,7 @@
 
 #pragma region 내부_함수
 void printreq1(void* item) {
-    printf("item : %d, index : %d\n", ((graphnode*)item)->item, ((graphnode*)item)->index);
+    printf("UID : %d, index : %d\n", ((graphnode*)item)->item, ((graphnode*)item)->index);
 }
 void graph_print(void* node) { graph_print_node((graphnode*)node); }
 graph* test_graph_create() {
@@ -33,29 +33,31 @@ graph* test_graph_create() {
 
 #pragma region 외부_함수
 // 외부 함수
-int requirement1_1 (universe* universe, int index_you) {
+int requirement1_1 (universe* universe, int UID_you) {
     int result = EXIT_SUCCESS;
-    if(index_you < 0 || universe->graph->length <= index_you) result = ERANGE;
+    hashnode* search = hash_peek(universe->UID_to_user, &UID_you);
+    if(search == NULL) { printf("존재하지 않는 UID입니다.\n"); return ERANGE; }
     else {
-        list* friends_friends = dijkstra_find_within_distance(universe->graph, index_you, 2, EXCL);
+        list* friends_friends = dijkstra_find_within_distance(universe->graph, ((graphnode*)(search->item))->index, 2, EXCL);
         if (friends_friends != NULL) {
-            printf("friend's friends : (total = %d)\n", list_get_length(friends_friends));
+            printf("--- 다리 건너 친구 목록 ---(총 = %d)\n", list_get_length(friends_friends));
             list_print_list(friends_friends, &printreq1);
             list_clear_list(&friends_friends);
-            printf("friend's friends End\n");
+            printf("--- ----- ---\n");
         }
         else result = ENOMEM;
     }
     return result;
 }
 
-int requirement1_2 (universe* universe, int index_a, int index_b) {
+int requirement1_2 (universe* universe, int UID_a, int UID_b) {
     int result = EXIT_SUCCESS;
-    if      (index_a < 0 || universe->graph->length <= index_a) result = ERANGE;
-    else if (index_b < 0 || universe->graph->length <= index_b) result = ERANGE;
+    hashnode* search_a = hash_peek(universe->UID_to_user, &UID_a);
+    hashnode* search_b = hash_peek(universe->UID_to_user, &UID_b);
+    if (search_a == NULL || search_b == NULL) { printf("존재하지 않는 UID입니다.\n"); result = ERANGE; }
     else {
-        int min = dijkstra_find_between(universe->graph, index_a, index_b);
-        if(min == -1)  printf("고립되어 있습니다.\n");
+        int min = dijkstra_find_between(universe->graph, ((graphnode*)(search_a->item))->index, ((graphnode*)(search_b->item))->index);
+        if(min == -1)  printf("연결되어 있지 않습니다.\n");
         else            printf("최소 연결 촌수 : %d\n", min);
     }
     return result;
