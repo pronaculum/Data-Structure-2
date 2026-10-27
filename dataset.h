@@ -30,6 +30,7 @@ int dataset_make_UID_both(hash** UID, int* UID_array, graph* graph);
 int dataset_make_UID_to_posts(hash** UID_to_posts, post* p);
 int dataset_make_post(post** p, int* UID_array, char* hashtag);
 int dataset_make_feed(heap* h, post* p);
+int dataset_refresh_rank(int* rank, graphnode* nodes[]);
 void dataset_out_graph(graph* g);
 int dataset_random_int(int max);
 #endif

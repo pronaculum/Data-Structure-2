@@ -79,20 +79,19 @@ int requirement2_1 (universe* universe, int UID_input) {
     }
     graphnode* user = ((graphnode*)(hashnode->item));
     list* posts = hash_peek_bucket_item(universe->UID_to_posts, &UID_input);
-    printf("이름 : %.8s\n유저 ID : %d\n", universe->name_array+user->index, UID_input);
+    printf("이름 : %.8s\n유저 ID : %d\n", universe->name_array+(user->index)*8, UID_input);
     if (user->adjustNodes->length == 0) printf("친구가 없습니다... 친구가 되어볼까요?\n");
     else {
         printf("유저 친구 수 : %d\n-- 친구 목록 --\n", user->adjustNodes->length);
         for(int i=0;i<user->adjustNodes->length;i++) printf("%d\n", universe->UID_array[((graphnode*)list_get_at(user->adjustNodes, i))->index]);
     }
-    if (posts->length == 0) printf("작성물이 없습니다.\n");
+    if (posts != NULL && posts->length == 0) printf("작성물이 없습니다.\n");
     else{
         printf("-- 작성 게시물 목록 --\n");
         for(int i=0;i<posts->length;i++) {
             post* p = (post*)list_get_at(posts, i);
-            int oct16 = 0; //현재 시각 어쩌구 어쩌구
-            printf("작성 일시 : %d, 좋아요 : %d\n", oct16 - p->time, p->good);
-            for(int j=0;j<3;j++) if (p->hashtag[j] != NULL) printf("%.4s", p->hashtag[j]);
+            printf("%d시간 전, 좋아요 : %d\n", p->time, p->good);
+            for(int j=0;j<3;j++) if (p->hashtag[j] != NULL) printf("#%.4s ", p->hashtag[j]);
             printf("\n");
     }printf("-- ----- --\n");}
     list_clear_list(&posts);
@@ -138,11 +137,7 @@ int requirement3 (universe* universe) {
 }
 
 int requirement4 (universe* universe) {
-    if (universe->rank[0] == -1) {for(int i=0;i<VERTEX_NUM;i++) {
-        universe->rank[i*2] = universe->graph->nodes[i]->adjustNodes->length;
-        universe->rank[i*2+1] = universe->graph->nodes[i]->index;}
-        sort_Merge(universe->rank, VERTEX_NUM, DUAL_ARRAY_INT, HIGH);
-    }
+    if (universe->rank[0] == -1) dataset_refresh_rank(universe->rank, universe->graph->nodes);
     printf("--- 랭킹 목록 ---\n");
     for(int i=0;i<50;i++) printf("%d위 : %d명, ID-%d 이름-%.8s\n", i+1, universe->rank[i*2], universe->graph->nodes[universe->rank[i*2+1]]->item, universe->name_array+universe->rank[i*2+1]*8);
     printf("--- ----- ---\n");
@@ -227,9 +222,9 @@ int interface_create_universe(universe** u) {
     if (dataset_make_UID_both(&((*u)->UID_to_user), (*u)->UID_array, (*u)->graph)   == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
     if (heap_create_heap(&((*u)->feed), POST_NUM, MAX_HEAP)                         == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
     if (dataset_make_post(&((*u)->posts), (*u)->UID_array, (*u)->hashtag_array)     == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
-    dataset_make_feed((*u)->feed, (*u)->posts);
-    dataset_make_hashtag_to_post(&((*u)->hashtag_to_posts), (*u)->posts);
-    dataset_make_UID_to_posts(&((*u)->UID_to_posts), (*u)->posts);
+    if (dataset_make_feed((*u)->feed, (*u)->posts)                                  == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
+    if (dataset_make_hashtag_to_post(&((*u)->hashtag_to_posts), (*u)->posts)        == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
+    if (dataset_make_UID_to_posts(&((*u)->UID_to_posts), (*u)->posts)               == ENOMEM) { interface_init_universe(*u); return ENOMEM; }
 
     if (((*u)->rank  = (int*)malloc(sizeof(int)*VERTEX_NUM*2))                      == NULL  ) { interface_init_universe(*u); return ENOMEM; }
     (*u)->rank[0] = -1;

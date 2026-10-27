@@ -4,6 +4,7 @@
 #include "queue.h"
 #include "list.h"
 #include "graph.h"
+#include "sort.h"
 #include "heap.h"
 #include "hash.h"
 #include "dataset.h"
@@ -140,6 +141,12 @@ int dataset_make_feed(heap* h, post* p) {
         heap_push(h, &weight, &i);
     }
     return EXIT_SUCCESS;
+}
+int dataset_refresh_rank(int* rank, graphnode* nodes[]) {
+    for(int i=0;i<VERTEX_NUM;i++) {
+        rank[i*2] = nodes[i]->adjustNodes->length;
+        rank[i*2+1] = nodes[i]->index;}
+        sort_Merge(rank, VERTEX_NUM, DUAL_ARRAY_INT, HIGH);
 }
 void dataset_out_graph(graph* g) {
     //파일 내보내기 구현 예정
